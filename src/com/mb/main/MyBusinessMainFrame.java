@@ -126,7 +126,7 @@ public class MyBusinessMainFrame extends javax.swing.JFrame {
 
     private void btCreateBillActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btCreateBillActionPerformed
         // TODO add your handling code here:
-        CreateBillFormDialog createBillDialog = new CreateBillFormDialog(this, true, appMng);
+        CreateBillFormDialog createBillDialog = new CreateBillFormDialog(this, false, appMng);
         createBillDialog.setPreferredSize(new Dimension(1000, 800));
         createBillDialog.setVisible(true);
     }//GEN-LAST:event_btCreateBillActionPerformed

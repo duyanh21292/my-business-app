@@ -11,16 +11,14 @@ import com.mb.main.MyDefaultTableCellRenderer;
 import com.mb.main.MyDefaultTableModel;
 import com.mb.main.MyTable;
 import com.mb.utils.ITableColumnString;
-import java.awt.BorderLayout;
+import com.mb.utils.MyBusinessUtils;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.LinkedList;
 import java.util.List;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -34,6 +32,7 @@ public class CreateBillFormDialog extends javax.swing.JDialog implements ITableC
     private DefaultTableModel tableModelBill;
     private List<ProductBill> listProductBill;
     private MyTable tableBill;
+    private int total;
     /**
      * Creates new form CreateBillFormDialog
      */
@@ -41,7 +40,31 @@ public class CreateBillFormDialog extends javax.swing.JDialog implements ITableC
         super(parent, modal);
         this.setTitle("Tạo đơn hàng");
         this.app = app;
-        listProductBill = new LinkedList<ProductBill>();
+        listProductBill = new LinkedList<ProductBill>() {
+
+            @Override
+            public boolean add(ProductBill e) {
+                boolean add = super.add(e); //To change body of generated methods, choose Tools | Templates.
+                addProductBillRow();
+                return add;
+            }
+            
+            private void addProductBillRow() {
+                ProductBill productBill = listProductBill.get(listProductBill.size() - 1);
+
+                String[] row = {String.valueOf(listProductBill.size()),
+                                productBill.getProduct().getProductId(),
+                                productBill.getProduct().getProductName(),
+                                productBill.getQuantityString(),
+                                String.valueOf(productBill.getTotalQuantity()),
+                                String.valueOf(productBill.getProduct().getProductPrice())};
+                tableModelBill.addRow(row);
+
+                total += (productBill.getTotalQuantity() * productBill.getProduct().getProductPrice());
+                tfTotal.setText(MyBusinessUtils.formatDecimalString(String.valueOf(total), true));
+            }
+            
+        };
         initComponents();
         renamePopupMenuItem();
         tableModelBill = new MyDefaultTableModel();
@@ -86,18 +109,8 @@ public class CreateBillFormDialog extends javax.swing.JDialog implements ITableC
         menuItemDelete.setEnabled(isEnabled);
     }
     
-    private void loadTableData() {
-        int stt = 1;
-        for (ProductBill productBill : listProductBill) {
-            String[] row = {String.valueOf(stt),
-                            productBill.getProduct().getProductId(),
-                            productBill.getProduct().getProductName(),
-                            productBill.getQuantityString(),
-                            String.valueOf(productBill.getTotalQuantity()),
-                            String.valueOf(productBill.getProduct().getProductPrice())};
-            tableModelBill.addRow(row);
-            stt++;
-        }
+    public boolean addProductBill(ProductBill productBill) {
+        return listProductBill.add(productBill);
     }
     
     /**
@@ -278,6 +291,7 @@ public class CreateBillFormDialog extends javax.swing.JDialog implements ITableC
         jLabel7.setText("Tổng tiền:");
         jPanel1.add(jLabel7);
 
+        tfTotal.setEditable(false);
         tfTotal.setFont(new java.awt.Font("Tahoma", 0, 18)); // NOI18N
         tfTotal.setHorizontalAlignment(javax.swing.JTextField.RIGHT);
         tfTotal.setText("0");
@@ -322,7 +336,7 @@ public class CreateBillFormDialog extends javax.swing.JDialog implements ITableC
 
     private void menuItemAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_menuItemAddActionPerformed
         // TODO add your handling code here:
-        VerifyProductForBill verifyProductDialog = new VerifyProductForBill(new Frame(), true, app, null);
+        VerifyProductForBill verifyProductDialog = new VerifyProductForBill(new Frame(), true, app, null, this);
         verifyProductDialog.setPreferredSize(new Dimension(340, 300));
         verifyProductDialog.setVisible(true);
     }//GEN-LAST:event_menuItemAddActionPerformed

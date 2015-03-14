@@ -7,8 +7,21 @@ package com.mb.bill.ui;
 
 import com.mb.bill.bean.ProductBill;
 import com.mb.main.AppManager;
+import com.mb.other.bean.Size;
 import com.mb.product.bean.Product;
+import com.mb.product.bean.ProductDetail;
+import com.mb.product.dao.ProductDetailDAO;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.List;
+import java.util.Vector;
+import javax.swing.BoxLayout;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 /**
  *
@@ -17,15 +30,59 @@ import javax.swing.JOptionPane;
 public class VerifyProductForBill extends javax.swing.JDialog {
     private ProductBill productBill;
     private AppManager app;
+    private CreateBillFormDialog createBillDialog;
     
     /**
      * Creates new form VerifyProductForBill
      */
-    public VerifyProductForBill(java.awt.Frame parent, boolean modal, AppManager app, ProductBill productBill) {
+    public VerifyProductForBill(java.awt.Frame parent, boolean modal, AppManager app, ProductBill productBill, CreateBillFormDialog createBillDialog) {
         super(parent, modal);
         this.app = app;
+        this.createBillDialog = createBillDialog;
         this.productBill = productBill;
+        if (this.productBill == null)
+            this.productBill = new ProductBill();
         initComponents();
+    }
+    
+    private void loadQuantityContent(String size, int quantity) {
+        JLabel label = new JLabel(size);
+        Dimension preferredSizeLabel = label.getPreferredSize();
+        preferredSizeLabel.width = 50;
+        label.setPreferredSize(preferredSizeLabel);
+        
+        Vector<Integer> comboBoxData = new Vector<Integer>();
+        for (int i = 0; i <= quantity; i++) {
+            comboBoxData.add(i);
+        }
+        JComboBox comboBox = new JComboBox(comboBoxData);
+        comboBox.addItemListener(new ItemListener() {
+
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                int item = (int) e.getItem();
+                if(item > 0) {
+                    productBill.getMapQuantity().put(size, item);
+                } else {
+                    productBill.getMapQuantity().remove(size);
+                }
+                updateBtOkState();
+            }
+        });
+        comboBox.setEnabled(quantity > 0);
+        Dimension preferredSizeComboBox = comboBox.getPreferredSize();
+        preferredSizeComboBox.width = 100;
+        comboBox.setPreferredSize(preferredSizeComboBox);
+        
+        JPanel newPanel = new JPanel(new FlowLayout());
+        newPanel.add(label);
+        newPanel.add(comboBox);
+        
+        pnCenter.add(newPanel);
+    }
+    
+    private void updateBtOkState() {
+        btOk.setEnabled(productBill.getTotalQuantity() > 0);
     }
 
     /**
@@ -45,7 +102,7 @@ public class VerifyProductForBill extends javax.swing.JDialog {
         jPanel3 = new javax.swing.JPanel();
         btOk = new javax.swing.JButton();
         btCancel = new javax.swing.JButton();
-        jPanel2 = new javax.swing.JPanel();
+        pnCenter = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
@@ -57,6 +114,12 @@ public class VerifyProductForBill extends javax.swing.JDialog {
         gridBagConstraints.gridy = 0;
         gridBagConstraints.insets = new java.awt.Insets(10, 10, 10, 0);
         jPanel1.add(jLabel1, gridBagConstraints);
+
+        tfProductId.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                tfProductIdKeyReleased(evt);
+            }
+        });
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 0;
@@ -66,6 +129,7 @@ public class VerifyProductForBill extends javax.swing.JDialog {
         jPanel1.add(tfProductId, gridBagConstraints);
 
         btVerify.setText("Lấy thông tin");
+        btVerify.setEnabled(false);
         btVerify.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btVerifyActionPerformed(evt);
@@ -82,6 +146,11 @@ public class VerifyProductForBill extends javax.swing.JDialog {
         btOk.setText("Thêm");
         btOk.setEnabled(false);
         btOk.setPreferredSize(new java.awt.Dimension(70, 23));
+        btOk.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btOkActionPerformed(evt);
+            }
+        });
         jPanel3.add(btOk);
 
         btCancel.setText("Hủy bỏ");
@@ -95,20 +164,20 @@ public class VerifyProductForBill extends javax.swing.JDialog {
 
         getContentPane().add(jPanel3, java.awt.BorderLayout.SOUTH);
 
-        jPanel2.setBorder(javax.swing.BorderFactory.createTitledBorder("Số lượng"));
+        pnCenter.setBorder(javax.swing.BorderFactory.createTitledBorder("Số lượng"));
 
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        javax.swing.GroupLayout pnCenterLayout = new javax.swing.GroupLayout(pnCenter);
+        pnCenter.setLayout(pnCenterLayout);
+        pnCenterLayout.setHorizontalGroup(
+            pnCenterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 326, Short.MAX_VALUE)
         );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+        pnCenterLayout.setVerticalGroup(
+            pnCenterLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 209, Short.MAX_VALUE)
         );
 
-        getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
+        getContentPane().add(pnCenter, java.awt.BorderLayout.CENTER);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -125,9 +194,29 @@ public class VerifyProductForBill extends javax.swing.JDialog {
         if (product == null) {
             JOptionPane.showMessageDialog(this, "Mã sản phẩm không tồn tại!", "Lỗi", JOptionPane.ERROR_MESSAGE);
         } else {
-            
+            pnCenter.removeAll();
+            pnCenter.setLayout(new BoxLayout(pnCenter, javax.swing.BoxLayout.Y_AXIS));
+            productBill.setProduct(product);
+            ProductDetailDAO productDetailDao = new ProductDetailDAO();
+            List<ProductDetail> listProductDetail = productDetailDao.getAll(productId);
+            for (ProductDetail productDetail : listProductDetail) {
+                Size size = app.getMapSize().get(productDetail.getSizeId());
+                loadQuantityContent(size.getSizeName(), productDetail.getQuantity());
+            }
         }
     }//GEN-LAST:event_btVerifyActionPerformed
+
+    private void tfProductIdKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_tfProductIdKeyReleased
+        // TODO add your handling code here:
+        btVerify.setEnabled(!tfProductId.getText().isEmpty());
+    }//GEN-LAST:event_tfProductIdKeyReleased
+
+    private void btOkActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btOkActionPerformed
+        // TODO add your handling code here:
+        if (createBillDialog.addProductBill(productBill)) {
+            this.dispose();
+        }
+    }//GEN-LAST:event_btOkActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btCancel;
@@ -135,8 +224,8 @@ public class VerifyProductForBill extends javax.swing.JDialog {
     private javax.swing.JButton btVerify;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel pnCenter;
     private javax.swing.JTextField tfProductId;
     // End of variables declaration//GEN-END:variables
 }
